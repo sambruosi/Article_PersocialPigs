@@ -404,53 +404,6 @@ dev.off()
 # Merge
 GLMM_data <- merge(x=personality[c(1:6,11:13)],y=SNA_metrics,by=c("Batch","Subject"), all = TRUE)
 GLMM_data <- na.omit(GLMM_data)
-GLMM_data[7:49] <- lapply(GLMM_data[7:49], as.numeric) 
-GLMM_data[1:6] <- lapply(GLMM_data[1:6], as.factor) 
-
-##### Data visualisation #####
-
-# visualise count predictor
-table(GLMM_data$PVC_Nr,GLMM_data$Batch)
-table(GLMM_data$Subject,GLMM_data$Batch)
-
-# visualise continuous predictor
-hist(GLMM_data$Agonistic_WDC)
-hist(GLMM_data$Agonistic_betweenness)
-hist(GLMM_data$Play_WDC)
-hist(GLMM_data$Play_betweenness)
-hist(GLMM_data$Nose.front_WDC)
-hist(GLMM_data$Nose.front_betweenness)
-hist(GLMM_data$Non.agonistic_WDC)
-hist(GLMM_data$Non.agonistic_betweenness)
-
-# visualise potential link between non-independant predictors
-plot(GLMM_data$Agonistic_WDC,GLMM_data$Agonistic_betweenness)
-plot(GLMM_data$Play_WDC,GLMM_data$Play_betweenness)
-plot(GLMM_data$Nose.front_WDC,GLMM_data$Nose.front_betweenness)
-plot(GLMM_data$Non.agonistic_WDC,GLMM_data$Non.agonistic_betweenness)
-
-boxplot(GLMM_data$NPT_NP_nose.nose_freq ~ GLMM_data$Novel_pig)
-boxplot(GLMM_data$NPT_NP_nose.nose_freq ~ GLMM_data$Sow)
-boxplot(GLMM_data$NPT_NP_nose.nose_freq ~ GLMM_data$Subject)
-
-hist(GLMM_data$NPT_NP_nose.nose_freq, breaks=15)
-table(GLMM_data$NPT_NP_nose.nose_freq)
-table(GLMM_data$PVC_Nr,GLMM_data$Novel_pig)
-table(GLMM_data$Novel_pig,GLMM_data$Subject)
-table(GLMM_data$PVC_Nr,GLMM_data$Subject)
-table(GLMM_data$Novel_pig,GLMM_data$Nose.front_out_degree)
-table(GLMM_data$Novel_pig,GLMM_data$Agonistic_out_degree)
-table(GLMM_data$Novel_pig,GLMM_data$Non.agonistic_betweenness)
-table(GLMM_data$Novel_pig,GLMM_data$Test_Nr)
-table(GLMM_data$Sow,GLMM_data$Nose.front_WDC)
-table(GLMM_data$Sow,GLMM_data$Agonistic_WDC)
-table(GLMM_data$Sow,GLMM_data$Non.agonistic_betweenness)
-table(GLMM_data$Sow,GLMM_data$Test_Nr)
-table(GLMM_data$Subject,GLMM_data$Test_Nr)
-plot(GLMM_data$NPT_NP_nose.nose_freq,GLMM_data$Nose.front_WDC)
-plot(GLMM_data$NPT_NP_nose.nose_freq,GLMM_data$Agonistic_WDC)
-plot(GLMM_data$NPT_NP_nose.nose_freq,GLMM_data$Non.agonistic_betweenness)
-plot(GLMM_data$Subject,GLMM_data$NPT_NP_nose.nose_freq)
 
 ##### Models #####
 
@@ -461,7 +414,7 @@ GLMM_data$Test_Nr2 = GLMM_data$Test_Nr2 - mean(GLMM_data$Test_Nr2)
 
 ###### NPT Nose.nose ######
 
-# increase max iterations for model convergence if necessary or change optimizer
+# determine max iterations and optimizer
 myControl = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
 
 model.a <- lmerTest::lmer(NPT_NP_nose.nose_freq ~ Nose.front_WDC + Nose.front_betweenness 
@@ -511,24 +464,15 @@ hist(ranef(model)$Novel_pig[,1])
 
 summary(model)
 
-boxplot(NPT_NP_nose.nose_freq ~ Batch, data = GLMM_data) # no variation across batches
-
-boxplot(NPT_NP_nose.nose_freq ~ PVC_Nr, data = GLMM_data) # variation between individuals
-
-plot(NPT_NP_nose.nose_freq ~ Non.agonistic_WDC, data = GLMM_data)
-
-plot(NPT_NP_nose.nose_freq ~ Test_Nr, data = GLMM_data)
-
 ###### NPT sudden display ######
 
 hist(GLMM_data$NPT_sudden_display_freq)
 table(GLMM_data$NPT_sudden_display_freq) # many zeros
 
-# Transform into a binary variable
+# transform into a binary variable
 GLMM_data$NPT_sudden_display_binom <- as.numeric(GLMM_data$NPT_sudden_display_freq != 0)
 table(GLMM_data$NPT_sudden_display_binom)
 
-# increase max iterations for model convergence if necessary or change optimizer
 myControl = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
 
 model.b <- glmer(NPT_sudden_display_binom ~ Play_WDC + Play_betweenness
@@ -557,9 +501,6 @@ table(GLMM_data$NPT_walking_by_fence_dur,exclude = FALSE)
 hist(GLMM_data$NPT_walking_by_fence_prop)
 hist(asin(sqrt(GLMM_data$NPT_walking_by_fence_prop)))
 
-GLMM_data$NPT_log <- log(GLMM_data$NPT_walking_by_fence_dur + sqrt(GLMM_data$NPT_walking_by_fence_dur^GLMM_data$NPT_walking_by_fence_dur +1))
-
-# increase max iterations for model convergence if necessary or change optimizer
 myControl = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
 
 model.c <- lmerTest::lmer(asin(sqrt(NPT_walking_by_fence_prop)) ~  Nose.front_WDC + Agonistic_WDC 
@@ -584,6 +525,8 @@ model.c <- lmerTest::lmer(asin(sqrt(NPT_walking_by_fence_prop)) ~  Nose.front_WD
 
 model=model.c
 
+vif(model)
+
 # Normal distribution of residuals
 car::qqPlot(resid(model))
 hist(residuals(model), main = "Histrogram", ylab="Residuals",breaks=15)
@@ -603,134 +546,4 @@ hist(ranef(model)$Batch[,4])
 hist(ranef(model)$Sow[,1])
 hist(ranef(model)$Novel_pig[,1])
 
-vif(model)
 summary(model)
-
-plot(NPT_walking_by_fence_prop ~ Agonistic_WDC, data = GLMM_data)
-plot(NPT_walking_by_fence_prop ~ Non.agonistic_WDC, data = GLMM_data)
-plot(NPT_walking_by_fence_prop ~ Test_Nr, data = GLMM_data)
-
-###### NPT walking by fence - Binary logistic regression ######
-library(ordinal) # function clmm for ordinal logistic regression
-library(emmeans) # get back probability from logit scale for the binary regression
-library(RVAideMemoire) # get back probability from logit scale for the full regression
-
-# Binary logistic regression 0 versus >0s
-GLMM_data$NPT_binary_log <- 0
-GLMM_data$NPT_binary_log[GLMM_data$NPT_walking_by_fence_dur > 0] <- 1
-table(GLMM_data$NPT_binary_log)
-table(GLMM_data$NPT_binary_log,GLMM_data$Test_Nr)
-
-# increase max iterations for model convergence if necessary or change optimizer
-myControl = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
-
-model.log1 <- glmer(NPT_binary_log ~  Nose.front_WDC + Agonistic_WDC 
-                    + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                    + Non.agonistic_betweenness 
-                    + Test_Nr 
-                    + (1 |PVC_Nr) 
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness||Novel_pig)
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness
-                       + Test_Nr2||Sow)
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness
-                       + Test_Nr2||Batch),
-                    family = binomial(link = "logit"),
-                    control = myControl,
-                    data=GLMM_data,
-                    nAGQ = 0)
-
-summary(model.log1)
-
-# Binary logistic regression <=50s versu >50s
-
-GLMM_data$NPT_binary_log <- 0
-GLMM_data$NPT_binary_log[GLMM_data$NPT_walking_by_fence_dur > 50] <- 1
-table(GLMM_data$NPT_binary_log)
-table(GLMM_data$NPT_binary_log,GLMM_data$Test_Nr)
-
-# increase max iterations for model convergence if necessary or change optimizer
-myControl = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
-
-model.log2 <- glmer(NPT_binary_log ~  Nose.front_WDC + Agonistic_WDC 
-                    + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                    + Non.agonistic_betweenness 
-                    + Test_Nr 
-                    + (1 |PVC_Nr) 
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness||Novel_pig)
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness
-                       + Test_Nr2||Sow)
-                    + (1 + Nose.front_WDC + Agonistic_WDC 
-                       + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                       + Non.agonistic_betweenness
-                       + Test_Nr2||Batch),
-                    family = binomial(link = "logit"),
-                    control = myControl,
-                    data=GLMM_data,
-                    nAGQ = 0)
-
-summary(model.log2)
-
-# Confidence intervals
-coef1 <- as.data.frame(coef(summary(model.log1)))[2:8,]
-coef2 <- as.data.frame(coef(summary(model.log2)))[2:8,]
-coef1$upper <- coef1$Estimate+1.96*coef1$`Std. Error`
-coef2$upper <- coef2$Estimate+1.96*coef2$`Std. Error`
-coef1$lower <- coef1$Estimate-1.96*coef1$`Std. Error`
-coef2$lower <- coef2$Estimate-1.96*coef2$`Std. Error`
-
-coef1$names <- row.names(coef1)
-row.names(coef1) <- 1:7
-coef2$names <- row.names(coef2)
-row.names(coef2) <- 1:7
-
-coef1$coef <- "coef1"
-coef2$coef <- "coef2"
-
-coefs <- rbind(coef1,coef2)
-
-# Check that the two models have largely overlapping estimates 
-#(which is an assumption before moving to the 3-levels regression)
-ggplot(coefs, aes(x = names, y = Estimate, col = coef)) +
-  geom_point(position = position_dodge(width = 0.5)) +
-  geom_pointrange(aes(x = names, y = Estimate, ymin = lower, ymax = upper), position = position_dodge(width = 0.5))
-
-# Full binary logistic regression (3 levels: 0, <=50s, >50s)
-GLMM_data$NPT_binary_log <- 0
-GLMM_data$NPT_binary_log[GLMM_data$NPT_walking_by_fence_dur > 0] <- 1
-GLMM_data$NPT_binary_log[GLMM_data$NPT_walking_by_fence_dur > 50] <- 2
-table(GLMM_data$NPT_binary_log)
-table(GLMM_data$NPT_binary_log,GLMM_data$Test_Nr)
-
-# increase max iterations for model convergence if necessary or change optimizer
-#myControl = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))
-GLMM_data$NPT_binary_log <- ordered(GLMM_data$NPT_binary_log)
-str(GLMM_data[,110:119])
-model.ord <- clmm(NPT_binary_log ~  Nose.front_WDC + Agonistic_WDC 
-                  + Non.agonistic_WDC +Nose.front_betweenness + Agonistic_betweenness 
-                  + Non.agonistic_betweenness 
-                  + Test_Nr 
-                  + (1 |PVC_Nr),
-                  data=GLMM_data,
-                  nAGQ = 0)
-
-summary(model.ord)
-emmeans(model.log1, pairwise ~ Test_Nr, type = "response")
-emmeans(model.log2, pairwise ~ Test_Nr, type = "response")
-emmeans(model.ord, pairwise ~ Test_Nr) # on the logit scale
-rating.emmeans(emmeans(model.ord, ~Test_Nr|cut,mode="linear.predictor",type = "response"))
-
-##### Conclusion #####
-
-summary(model.a)
-summary(model.b)
-summary(model.c)
