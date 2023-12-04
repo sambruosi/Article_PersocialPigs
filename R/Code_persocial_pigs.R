@@ -401,9 +401,10 @@ dev.off()
 
 ##### Data preparation #####
 
-# Merge
-GLMM_data <- merge(x=personality[c(1:6,11:13)],y=SNA_metrics,by=c("Batch","Subject"), all = TRUE)
+GLMM_data <- read.table("data_GLMM_persocial_pigs.csv", sep=",", header=TRUE)
 GLMM_data <- na.omit(GLMM_data)
+GLMM_data[7:49] <- lapply(GLMM_data[7:49], as.numeric) 
+GLMM_data[1:6] <- lapply(GLMM_data[1:6], as.factor) 
 
 ##### Models #####
 
